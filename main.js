@@ -3,10 +3,12 @@ import config from "../apikey.js"
 const MOUNTAINS_KEY = config.KEY.mountains_key;
 const MOUNTAINS_URL = config.URL.mountains_url;
 const TRAIL_URL = config.URL.trail_url;
+const WEATHER_URL = config.URL.weather_url;
+const WEATHER_KEY = config.KEY.weather_key;
 
 let url = new URL(`${MOUNTAINS_URL}1400000/service/cultureInfoService2/mntInfoOpenAPI2?_type=json&serviceKey=${MOUNTAINS_KEY}`)
 
-const mountain_keyword = '지리산'
+const mountain_keyword = '한라산'
 
 // 산 정보만 뽑을 경우
 const getMntData = async() => {
@@ -15,7 +17,7 @@ const getMntData = async() => {
     const data = await response.json();
     console.log('getMntData',data)
     const mntilistNo = data.response.body.items.item.mntilistno; // 산 코드
-    const mntiadd = data.response.body.items.length != 1?data.response.body.items.item[0].mntiadd: data.response.body.items.item.mntiadd
+    const mntiadd = Array.isArray(data.response.body.items.item)?data.response.body.items.item[0].mntiadd: data.response.body.items.item.mntiadd
     // await getMntImgData(mntilistNo);
     await translateToAddress(mntiadd);
     // getTrailData()
@@ -68,24 +70,40 @@ const translateToAddress = async (mntAdress) => {
         }
         // 성공 시의 response 처리
         const {x, y} = response.v2.addresses[0]
-        console.log(`x : ${x} y : ${y}`);
-        return initMap(y, x)
+        console.log(`y : ${x} x : ${y}`);
+        // return initMap(y, x)
+        return callWeather(y, x)
     });
 }
 
 // 지도 생성
 var map = null;
 
-function initMap(x, y) {
-    var map = new naver.maps.Map('map', {
-        center: new naver.maps.LatLng(x, y),
-        zoom: 15
-    });
+// function initMap(x, y) {
+//     var map = new naver.maps.Map('map', {
+//         center: new naver.maps.LatLng(x, y),
+//         zoom: 15
+//     });
     
-    var marker = new naver.maps.Marker({
-        position: new naver.maps.LatLng(x, y),
-        map: map
-    });
+//     var marker = new naver.maps.Marker({
+//         position: new naver.maps.LatLng(x, y),
+//         map: map
+//     });
+// }
+
+const callWeather = async (y, x) => {
+    url = new URL(`${WEATHER_URL}data/2.5/weather?lat=${y}&lon=${x}&lang=kr&units=metric&appid=${WEATHER_KEY}`)
+    const response = await fetch(url);
+    const data = await response.json();
+    console.log('callWeather',data)
+    const currTemp = Math.round(data.main.temp * 10) / 10;
+  const weatherType = data.weather[0].description;
+//   const currTime = getYmd10(data.dt);
+  const iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+  console.log("temp:", currTemp);
+  console.log("날씨:", weatherType);
+//   console.log("기준시간:", getYmd10(data.dt));
+  console.log("아이콘", iconUrl);
 }
 
 
