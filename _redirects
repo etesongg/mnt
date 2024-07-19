@@ -1,1 +1,3 @@
-/* http://apis.data.go.kr/:splat 200
+/api/mountains/* http://apis.data.go.kr/:splat 200
+/api/trail/* http://openapi.forest.go.kr/:splat 200
+/api/weather/* https://api.openweathermap.org/:splat 200
